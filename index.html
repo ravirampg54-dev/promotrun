@@ -1,0 +1,125 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>₹10K</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e1424;--card:#172038;--bd:#26314f;--tx:#eef1fa;--mu:#9aa6c6;--ac:#8b7bff;--cy:#38d6e8;--ok:#7be08a;--wn:#ffc857;--cr:#ff6b7d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme=light]{--bg:#f3f5fb;--card:#fff;--bd:#d9dff0;--tx:#141a2e;--mu:#56608a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Manrope,system-ui,sans-serif}
+nav{display:flex;gap:4px;overflow-x:auto;padding:10px;border-bottom:1px solid var(--bd);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+nav b{font-size:20px;padding:4px 10px;color:var(--cy)}nav button{white-space:nowrap}
+button,input,select{font:inherit;color:inherit}
+button{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ac)}button.on,button.p{background:var(--ac);border-color:var(--ac);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+input,select{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px 9px;width:100%}
+main{max-width:1050px;margin:auto;padding:16px}
+.g{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;min-width:0}
+.big{font-size:26px;font-weight:800}.mu{color:var(--mu);font-size:13px}h2{margin:18px 0 10px}h3{margin:0 0 8px;font-size:15px}
+.Low{color:var(--ok)}.Moderate{color:var(--wn)}.High{color:#ff9a4d}.Critical{color:var(--cr)}
+table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid var(--bd);text-align:left}
+.sc{overflow-x:auto}.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.row>*{flex:1 1 120px}.tag{font-size:12px;color:var(--mu)}
+.err{color:var(--cr);font-size:13px}.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ac);color:#fff;padding:8px 16px;border-radius:20px}
+@media(prefers-reduced-motion:no-preference){.c{transition:border-color .2s}}
+</style></head><body><nav id="nav"></nav><main id="m"></main><div id="t"></div>
+<script>
+const CATS=['Food & Groceries','Transport','Education','Rent & Utilities','Mobile & Internet','Health','Entertainment','Shopping','Subscriptions','Emergency','Other'];
+const R=p=>'₹'+(p/100).toLocaleString('en-IN',{maximumFractionDigits:2,minimumFractionDigits:p%100?2:0});
+const P=v=>Math.round(parseFloat(v)*100);const L=30,id=()=>Math.random().toString(36).slice(2,9);
+const $=i=>document.getElementById(i);const sum=a=>a.reduce((x,y)=>x+y,0);
+function demo(){return{v:1,day:10,open:1000000,reserve:80000,tab:'ov',demo:true,sel:{},
+tx:[{id:id(),desc:'Groceries',amt:85000,type:'ex',cat:CATS[0],day:2,status:'done',ess:1},{id:id(),desc:'Metro card',amt:50000,type:'ex',cat:CATS[1],day:3,status:'done',ess:1},{id:id(),desc:'Biryani with friends',amt:62000,type:'ex',cat:CATS[6],day:6,status:'done',ess:0},{id:id(),desc:'Online course',amt:99900,type:'ex',cat:CATS[2],day:8,status:'done',ess:0},{id:id(),desc:'Freelance gig',amt:150000,type:'in',cat:'Other',day:9,status:'done'},{id:id(),desc:'Medical checkup',amt:120000,type:'ex',cat:CATS[5],day:14,status:'sched',ess:1}],
+com:[{id:id(),name:'Mobile recharge',amt:29900,freq:'monthly',due:15,ess:1,status:'active',cat:CATS[4]},{id:id(),name:'Rent share',amt:250000,freq:'monthly',due:20,ess:1,status:'active',cat:CATS[3]},{id:id(),name:'Music streaming',amt:11900,freq:'monthly',due:12,ess:0,status:'active',cat:CATS[8]}],
+goals:[{id:id(),name:'New laptop',target:500000,saved:100000,day:30}],
+budget:{'Food & Groceries':250000,Transport:120000,Education:100000,'Rent & Utilities':150000,'Mobile & Internet':40000,Health:50000,Entertainment:80000,Subscriptions:30000,Emergency:80000,Other:100000}}}
+let S=JSON.parse(localStorage.getItem('10k')||'null')||demo();
+try{}catch(e){}
+const save=()=>{try{localStorage.setItem('10k',JSON.stringify(S))}catch(e){}};
+// ---------- engine (pure, integer paise) ----------
+const bal=s=>s.open+sum(s.tx.filter(t=>t.status=='done').map(t=>t.type=='in'?t.amt:-t.amt));
+const saved=s=>sum(s.goals.map(g=>g.saved));
+function occ(c,from=1){if(c.status!='active')return[];const st=c.freq=='weekly'?7:30,o=[];for(let d=c.due;d<=L;d+=st){if(d>=from)o.push(d);if(c.freq=='once')break}return o}
+function flows(s){const f=[];s.tx.filter(t=>t.status=='sched'&&t.day>=s.day).forEach(t=>f.push({d:t.day,a:t.type=='in'?t.amt:-t.amt,ess:t.ess,n:t.desc}));
+s.com.forEach(c=>occ(c,s.day).forEach(d=>f.push({d,a:-c.amt,ess:c.ess,n:c.name})));return f}
+function forecast(s,ex=[]){const f=flows(s).concat(ex);let b=bal(s);const o=[];for(let d=s.day;d<=L;d++){b+=sum(f.filter(x=>x.d==d).map(x=>x.a));o.push({d,b})}return o}
+function metrics(s,ex=[]){const fc=forecast(s,ex),days=L-s.day+1,all=flows(s).concat(ex),b=bal(s);
+const essDue=-sum(all.filter(x=>x.ess&&x.a<0).map(x=>x.a));const flex=b-saved(s)+sum(all.map(x=>x.a))-s.reserve;
+const safe=Math.max(0,Math.round(flex/days)),min=Math.min(...fc.map(x=>x.b)),end=fc[fc.length-1].b;
+let risk='Low',why=[];const neg=fc.find(x=>x.b<0);
+if(neg){risk='Critical';why.push(`Balance projected to hit ${R(neg.b)} on Day ${neg.d}.`)}
+else if(min<s.reserve){risk='High';const x=fc.find(y=>y.b<s.reserve);why.push(`Balance falls to ${R(x.b)} on Day ${x.d}, below the ${R(s.reserve)} reserve.`)}
+else if(safe<10000){risk='Moderate';why.push(`Safe daily allowance is only ${R(safe)}.`)}else why.push('Obligations are covered and the forecast stays above the reserve.');
+const spent=cs(s),over=Object.keys(s.budget).filter(k=>(spent[k]||0)>s.budget[k]);
+const tgt=sum(s.goals.map(g=>g.target))||1;
+const sc={cov:neg?Math.max(0,25*(1+min/Math.max(essDue,1))):25,cash:25*Math.min(1,safe/16667),res:20*Math.max(0,Math.min(1,min/Math.max(s.reserve,1))),bud:15*(1-over.length/Math.max(1,Object.keys(s.budget).length)),sav:15*Math.min(1,saved(s)/tgt)};
+const score=Math.round(sum(Object.values(sc)));return{fc,safe,min,end,risk,why,score,sc,flex,essDue,over,b}}
+function cs(s){const o={};s.tx.filter(t=>t.status=='done'&&t.type=='ex').forEach(t=>o[t.cat]=(o[t.cat]||0)+t.amt);return o}
+function scenarios(s,name,amt,start,freq){const mk=(a,st)=>{const c={due:st,amt:a,freq,status:'active'};return occ(c,1).filter(d=>d>=s.day).map(d=>({d,a:-a,ess:0,n:name}))};
+const defs=[['A: Skip it',[]],['B: Buy now',mk(amt,s.day)],['C: Later & 25% cheaper',mk(Math.round(amt*.75),Math.max(start,s.day+7))]];
+return defs.map(([n,ex])=>({n,ex,m:metrics(s,ex)}))}
+// ---------- ui ----------
+const toast=m=>{$('t').innerHTML=`<div class="toast" role="status">${m}</div>`;setTimeout(()=>$('t').innerHTML='',2200)};
+const TABS=[['ov','Overview'],['tx','Transactions'],['bp','Budget'],['sim','Simulator'],['gl','Goals'],['bl','Bills'],['in','Insights'],['st','Settings']];
+function chart(series,h=170){const W=600,all=series.flatMap(s=>s.pts),mx=Math.max(...all.map(p=>p.b),1),mn=Math.min(...all.map(p=>p.b),0),x=d=>20+(d-1)/(L-1)*(W-30),y=v=>h-18-(v-mn)/((mx-mn)||1)*(h-30);
+const col=['var(--mu)','var(--cy)','var(--ok)'];
+return`<div class="sc"><svg viewBox="0 0 ${W} ${h}" style="min-width:420px;width:100%" role="img" aria-label="Projected balance by day"><line x1="20" x2="${W-10}" y1="${y(0)}" y2="${y(0)}" stroke="var(--cr)" stroke-dasharray="3"/><text x="22" y="${y(0)-3}" fill="var(--mu)" font-size="10">₹0</text><text x="22" y="10" fill="var(--mu)" font-size="10">${R(mx)}</text>${series.map((s,i)=>`<polyline fill="none" stroke="${s.c||col[i%3]}" stroke-width="2.5" points="${s.pts.map(p=>x(p.d)+','+y(p.b)).join(' ')}"><title>${s.n}</title></polyline>`).join('')}<text x="${W-80}" y="${h-3}" fill="var(--mu)" font-size="10">Day ${L}</text></svg></div><div class="tag">${series.map((s,i)=>`<span style="color:${s.c||col[i%3]}">■</span> ${s.n}`).join(' &nbsp; ')}</div>`}
+function donut(o){const e=Object.entries(o),t=sum(e.map(x=>x[1]));if(!t)return'<p class="mu">No completed expenses yet.</p>';let a=0;const cl=['#8b7bff','#38d6e8','#7be08a','#ffc857','#ff6b7d','#ff9a4d','#c792ea','#6ab0ff','#aaa','#e0b','#0aa'];
+return`<div class="row" style="align-items:center"><svg viewBox="0 0 42 42" width="140" role="img" aria-label="Spending by category">${e.map(([k,v],i)=>{const p=v/t*100,r=`<circle cx="21" cy="21" r="15.9" fill="none" stroke="${cl[i%11]}" stroke-width="6" stroke-dasharray="${p} ${100-p}" stroke-dashoffset="${25-a}"><title>${k}: ${R(v)}</title></circle>`;a+=p;return r}).join('')}</svg><div class="tag">${e.map(([k,v],i)=>`<div><span style="color:${cl[i%11]}">■</span> ${k} ${R(v)}</div>`).join('')}</div></div>`}
+const card=(t,v,s='',c='')=>`<div class="c"><div class="mu">${t}</div><div class="big ${c}">${v}</div><div class="mu">${s}</div></div>`;
+function ov(){const m=metrics(S),b=bal(S),sp=sum(S.tx.filter(t=>t.status=='done'&&t.type=='ex').map(t=>t.amt)),cau=S.fcCaut;
+const caut=forecast(S,[...Array(L-S.day+1)].map((_,i)=>({d:S.day+i,a:-Math.round(m.safe*.5),ess:0})));
+const up=flows(S).filter(f=>f.a<0).sort((a,b)=>a.d-b.d).slice(0,5);const tg=sum(S.goals.map(g=>g.target))||1;
+const avg=Math.round(b/(L-S.day+1));
+return`${S.demo?'<p class="tag">Demo data stored only in this browser. Reset it in Settings.</p>':''}
+<div class="g">${card('Current balance',R(b),`Opening ${R(S.open)}`)}${card('Total spent',R(sp),'Completed expenses')}${card('Safe to spend today',R(m.safe),`Simple average would say ${R(avg)}; protected funds excluded`,'' )}${card('Risk level',m.risk,m.why[0],m.risk)}${card('Health score',m.score+'/100','Educational estimate, not a credit score')}${card('Days remaining',L-S.day,`Day ${S.day} of ${L}`)}${card('Savings',R(saved(S)),`${Math.round(saved(S)/tg*100)}% of ${R(tg)} goals`)}</div>
+<h2>Balance projection</h2><div class="c">${chart([{n:'Base case',pts:m.fc},{n:'Cautious (spend half of safe allowance daily)',pts:caut}])}<p class="mu">Assumes no new income or spending beyond scheduled items.</p></div>
+<div class="g" style="margin-top:12px"><div class="c"><h3>Spending by category</h3>${donut(cs(S))}</div><div class="c"><h3>Upcoming payments</h3>${up.map(f=>`<div>Day ${f.d}: ${f.n} <b>${R(-f.a)}</b></div>`).join('')||'<p class="mu">Nothing scheduled.</p>'}</div><div class="c"><h3>Health breakdown</h3>${[['Essentials covered',m.sc.cov,25],['Cash-flow',m.sc.cash,25],['Reserve',m.sc.res,20],['Budget adherence',m.sc.bud,15],['Savings',m.sc.sav,15]].map(([n,v,x])=>`<div class="tag">${n} ${v.toFixed(0)}/${x}</div><div class="bar"><i style="width:${v/x*100}%"></i></div>`).join('')}</div></div>`}
+function txv(){const q=(S.q||'').toLowerCase(),f=S.f||'all';let l=S.tx.filter(t=>(f=='all'||t.status==f||t.type==f)&&t.desc.toLowerCase().includes(q)).sort((a,b)=>b.day-a.day);
+return`<h2>Transactions</h2><div class="c"><div class="row"><label>Description<input id="d"></label><label>Amount ₹<input id="a" type="number" step="0.01" min="0"></label><label>Type<select id="ty"><option value="ex">Expense</option><option value="in">Income</option></select></label><label>Category<select id="ca">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></label><label>Day<input id="dy" type="number" min="1" max="30" value="${S.day}"></label><label>Essential?<select id="es"><option value="0">Discretionary</option><option value="1">Essential</option></select></label><button class="p" onclick="addTx()">Add</button></div><div id="e" class="err"></div></div>
+<div class="row" style="margin:10px 0"><input placeholder="Search" value="${S.q||''}" oninput="S.q=this.value;draw()" aria-label="Search"><select onchange="S.f=this.value;draw()" aria-label="Filter">${['all','done','sched','in','ex'].map(x=>`<option ${f==x?'selected':''} value="${x}">${{all:'All',done:'Completed',sched:'Scheduled',in:'Income',ex:'Expenses'}[x]}</option>`).join('')}</select></div>
+<div class="c sc"><table><tr><th>Day<th>Description<th>Category<th>Amount<th>Status<th></tr>${l.map(t=>`<tr><td>${t.day}<td>${t.desc}<td>${t.cat}<td class="${t.type=='in'?'Low':''}">${t.type=='in'?'+':'−'}${R(t.amt)}<td>${t.status=='done'?'Paid':'Scheduled'}<td>${t.status=='sched'?`<button onclick="pay('${t.id}')">Mark paid</button> `:''}<button onclick="del('${t.id}')">Delete</button></tr>`).join('')||'<tr><td colspan=6 class="mu">No transactions match.</tr>'}</table></div>`}
+function addTx(){const d=$('d').value.trim(),a=P($('a').value),dy=+$('dy').value;let e='';if(!d)e='Add a description.';else if(!(a>0))e='Amount must be greater than 0.';else if(!(dy>=1&&dy<=L))e='Day must be 1–30.';
+const ty=$('ty').value,dup=S.tx.some(t=>t.desc==d&&t.amt==a&&t.day==dy);if(!e&&dup&&!confirm('A matching transaction exists. Add it again?'))return;
+if(e){$('e').textContent=e;return}S.tx.push({id:id(),desc:d,amt:a,type:ty,cat:$('ca').value,day:dy,status:dy>S.day?'sched':'done',ess:+$('es').value});save();draw();toast('Transaction added')}
+function pay(i){const t=S.tx.find(x=>x.id==i);t.status='done';save();draw();toast('Marked paid')}
+function del(i){if(!confirm('Delete this transaction?'))return;S.tx=S.tx.filter(t=>t.id!=i);save();draw()}
+function bp(){const sp=cs(S),tot=sum(Object.values(S.budget));
+return`<h2>Budget planner</h2><p class="${tot>S.open?'err':'mu'}">Allocated ${R(tot)} of ${R(S.open)}${tot>S.open?' — over budget by '+R(tot-S.open):''}. Allocations are plans; they never change your cash balance.</p><div class="c sc"><table><tr><th>Category<th>Planned ₹<th>Spent<th>Left<th>Used</tr>${Object.keys(S.budget).map(k=>{const u=(sp[k]||0)/(S.budget[k]||1);return`<tr><td>${k}<td><input type="number" min="0" style="width:100px" value="${S.budget[k]/100}" onchange="S.budget['${k}']=Math.max(0,P(this.value));save();draw()" aria-label="${k} planned"><td>${R(sp[k]||0)}<td class="${S.budget[k]-(sp[k]||0)<0?'Critical':''}">${R(S.budget[k]-(sp[k]||0))}<td>${Math.round(u*100)}%</tr>`}).join('')}</table></div>`}
+function sim(){const d=S.sim||{name:'Headphones',amt:2000,start:S.day,freq:'once'};S.sim=d;const sc=scenarios(S,d.name,P(d.amt)||0,+d.start,d.freq),cur=metrics(S),best=Math.max(...sc.map(x=>x.m.end)),sd=sc.find(x=>x.m.safe==Math.max(...sc.map(y=>y.m.safe)));
+const set=(k,v)=>`S.sim.${k}=${v};draw()`;
+return`<h2>Decision simulator</h2><div class="c"><div class="row">${[['Superset',0]].length?'':''}<label>Decision<input value="${d.name}" onchange="S.sim.name=this.value;draw()"></label><label>Amount ₹<input type="number" min="0" value="${d.amt}" onchange="S.sim.amt=this.value;draw()"></label><label>Start day<input type="number" min="1" max="30" value="${d.start}" onchange="S.sim.start=+this.value;draw()"></label><label>Frequency<select onchange="S.sim.freq=this.value;draw()">${['once','weekly','monthly'].map(f=>`<option ${f==d.freq?'selected':''}>${f}</option>`).join('')}</select></label></div>
+<div class="row" style="margin-top:8px">${[['Headphones',2000],['Food order',350],['Course',1500],['Subscription',499],['Weekend trip',3000]].map(([n,a])=>`<button onclick="S.sim={name:'${n}',amt:${a},start:S.day,freq:'${n=='Subscription'?'monthly':'once'}'};draw()">${n} ${R(a*100)}</button>`).join('')}</div><p class="mu">Previews never change your real data.</p></div>
+<div class="c sc" style="margin-top:12px"><table><tr><th><th>Now<th>${sc.map(x=>`<th>${x.n}`).join('')}</tr>
+<tr><td>End-of-month balance<td>${R(cur.end)}${sc.map(x=>`<td>${R(x.m.end)}${x.m.end==best?' ★':''}`).join('')}</tr>
+<tr><td>Lowest balance<td>${R(cur.min)}${sc.map(x=>`<td>${R(x.m.min)}`).join('')}</tr>
+<tr><td>Safe daily allowance<td>${R(cur.safe)}${sc.map(x=>`<td>${R(x.m.safe)}${x==sd?' ★':''}`).join('')}</tr>
+<tr><td>Risk<td class="${cur.risk}">${cur.risk}${sc.map(x=>`<td class="${x.m.risk}">${x.m.risk}`).join('')}</tr>
+<tr><td>Health score<td>${cur.score}${sc.map(x=>`<td>${x.m.score} (${x.m.score-cur.score>=0?'+':''}${x.m.score-cur.score})`).join('')}</tr>
+<tr><td>Feasible?<td>—${sc.map(x=>`<td>${x.m.min>=0?'Yes':'No: shortfall '+R(-x.m.min)}`).join('')}</tr>
+<tr><td>Laptop goal<td>—${sc.map(x=>{const g=S.goals[0];if(!g)return'<td>—';const cash=x.m.flex;return`<td>${cash>=g.target-g.saved?'Fundable from flexible cash':'Short by '+R(g.target-g.saved-Math.max(0,cash))}`}).join('')}</tr><tr><td><td>${sc.map((x,i)=>`<td>${i?`<button class="p" onclick="applySc(${i})">Apply</button>`:''}`).join('<td>')}</tr></table></div>
+<div class="c" style="margin-top:12px"><h3>Forecast by scenario</h3>${chart(sc.map((x,i)=>({n:x.n,pts:x.m.fc})))}</div>
+<h2>Emergency mode</h2><div class="row">${[['Medical',2500],['Laptop repair',3000],['Urgent travel',1500],['Family emergency',2000]].map(([n,a])=>`<button onclick="S.sim={name:'${n}',amt:${a},start:S.day,freq:'once'};draw()">${n} ${R(a*100)}</button>`).join('')}</div><p class="mu">Pick one to preview it above. Scenario B shows its impact; a shortfall is shown in the Feasible row, and no borrowing is assumed.</p>`}
+function applySc(i){const x=scenarios(S,S.sim.name,P(S.sim.amt),+S.sim.start,S.sim.freq)[i];if(!confirm(`Apply "${x.n}" to your real data?`))return;const d=S.sim;
+const a=i==2?Math.round(P(d.amt)*.75):P(d.amt),st=i==2?Math.max(+d.start,S.day+7):S.day;
+if(d.freq=='once')S.tx.push({id:id(),desc:d.name,amt:a,type:'ex',cat:'Other',day:st,status:st>S.day?'sched':'done',ess:0});
+else S.com.push({id:id(),name:d.name,amt:a,freq:d.freq,due:st,ess:0,status:'active',cat:'Subscriptions'});
+save();S.tab='ov';draw();toast('Decision applied once')}
+function gl(){return`<h2>Savings goals</h2><div class="c"><div class="row"><label>Name<input id="gn"></label><label>Target ₹<input id="gt" type="number" min="1"></label><label>Target day<input id="gd" type="number" min="1" max="30" value="30"></label><button class="p" onclick="addG()">Add goal</button></div><div id="e" class="err"></div></div><div class="g" style="margin-top:12px">${S.goals.map(g=>{const rem=g.target-g.saved,dl=Math.max(1,g.day-S.day);return`<div class="c"><h3>${g.name}</h3><div class="bar"><i style="width:${Math.min(100,g.saved/g.target*100)}%"></i></div><p>${R(g.saved)} of ${R(g.target)} (${Math.round(g.saved/g.target*100)}%)</p><p class="mu">${rem<=0?'Fully funded.':`Needs about ${R(Math.ceil(rem/dl))}/day for ${dl} days. ${g.day<S.day?'Deadline passed.':''}`}</p><div class="row"><input id="g${g.id}" type="number" min="0" placeholder="₹"><button onclick="mv('${g.id}',1)">Add</button><button onclick="mv('${g.id}',-1)">Withdraw</button></div></div>`}).join('')||'<p class="mu">No goals yet.</p>'}</div>`}
+function addG(){const n=$('gn').value.trim(),t=P($('gt').value);if(!n||!(t>0)){$('e').textContent='Enter a name and a target above ₹0.';return}S.goals.push({id:id(),name:n,target:t,saved:0,day:+$('gd').value||30});save();draw()}
+function mv(i,s){const g=S.goals.find(x=>x.id==i),a=P($('g'+i).value);if(!(a>0))return toast('Enter an amount');
+const avail=bal(S)-saved(S);if(s>0&&a>avail)return toast('Not enough available cash');if(s<0&&a>g.saved)return toast('Goal has less than that');g.saved+=s*a;save();draw()}
+function bl(){const rem=sum(S.com.flatMap(c=>occ(c,S.day).map(()=>c.amt)));return`<h2>Bills & subscriptions</h2><p class="mu">Remaining this simulation: ${R(rem)}</p><div class="c"><div class="row"><label>Name<input id="bn"></label><label>Amount ₹<input id="ba" type="number" min="0"></label><label>Frequency<select id="bf"><option>monthly</option><option>weekly</option><option>once</option></select></label><label>Due day<input id="bd" type="number" min="1" max="30" value="${S.day+1}"></label><label>Type<select id="be"><option value="1">Essential</option><option value="0">Optional</option></select></label><button class="p" onclick="addB()">Add</button></div><div id="e" class="err"></div></div><div class="c sc" style="margin-top:12px"><table><tr><th>Name<th>Amount<th>Every<th>Next<th>Status<th></tr>${S.com.map(c=>`<tr><td>${c.name} <span class="tag">${c.ess?'essential':'optional'}</span><td>${R(c.amt)}<td>${c.freq}<td>${c.due}<td>${c.status}<td>${c.status=='active'?`<button onclick="payB('${c.id}')">Mark paid</button> <button onclick="stB('${c.id}','paused')">Pause</button> <button onclick="stB('${c.id}','cancelled')">Cancel${c.ess?'':' (saves '+R(sum(occ(c,S.day).map(()=>c.amt)))+')'}</button>`:`<button onclick="stB('${c.id}','active')">Resume</button>`}</tr>`).join('')}</table></div>`}
+function addB(){const n=$('bn').value.trim(),a=P($('ba').value);if(!n||!(a>0)){$('e').textContent='Enter a name and an amount above ₹0.';return}S.com.push({id:id(),name:n,amt:a,freq:$('bf').value,due:+$('bd').value||S.day,ess:+$('be').value,status:'active',cat:'Other'});save();draw()}
+function stB(i,s){S.com.find(c=>c.id==i).status=s;save();draw();toast('Updated; past payments are kept')}
+function payB(i){const c=S.com.find(x=>x.id==i);S.tx.push({id:id(),desc:c.name,amt:c.amt,type:'ex',cat:c.cat||'Other',day:S.day,status:'done',ess:c.ess});if(c.freq=='once')c.status='cancelled';else c.due+=c.freq=='weekly'?7:30;save();draw();toast('Paid; next due day '+c.due)}
+function ins(){const ex=S.tx.filter(t=>t.status=='done'&&t.type=='ex');if(!ex.length)return'<h2>Insights</h2><p class="mu">Add expenses to see insights.</p>';const sp=cs(S),top=Object.entries(sp).sort((a,b)=>b[1]-a[1])[0],tot=sum(ex.map(t=>t.amt)),m=metrics(S),es=sum(ex.filter(t=>t.ess).map(t=>t.amt)),big=ex.sort((a,b)=>b.amt-a.amt)[0],plan=S.open/L*S.day;
+return`<h2>Insights</h2><div class="c"><ul><li>Largest category: <b>${top[0]}</b> (${R(top[1])}, ${Math.round(top[1]/tot*100)}% of spending).</li><li>Average per day so far: <b>${R(Math.round(tot/S.day))}</b>, versus the ${R(Math.round(S.open/L))} flat plan.</li><li>Spent ${R(tot)} against a pro-rata plan of ${R(Math.round(plan))}.</li><li>Essential ${R(es)} / discretionary ${R(tot-es)}.</li><li>Biggest single expense: ${big.desc} (${R(big.amt)}) on day ${big.day}.</li><li>Forecast month-end: <b>${m.end>=0?'surplus '+R(m.end):'shortfall '+R(-m.end)}</b>.</li><li>Optional subscriptions you could cancel: ${R(sum(S.com.filter(c=>!c.ess).flatMap(c=>occ(c,S.day).map(()=>c.amt))))} over the rest of the month.</li></ul><button onclick="window.print()">Print report</button> <button onclick="csv()">Export CSV</button></div>`}
+function csv(){const r=[['id','description','amount_inr','type','category','day','status','essential']].concat(S.tx.map(t=>[t.id,'"'+t.desc.replace(/"/g,'""')+'"',t.amt/100,t.type,t.cat,t.day,t.status,t.ess?1:0]));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.map(x=>x.join(',')).join('\n')],{type:'text/csv'}));a.download='10k-transactions.csv';a.click()}
+function st(){return`<h2>Settings</h2><div class="c"><div class="row"><label>Starting budget ₹<input type="number" min="0" value="${S.open/100}" onchange="S.open=P(this.value);save();draw()"></label><label>Emergency reserve ₹<input type="number" min="0" value="${S.reserve/100}" onchange="S.reserve=P(this.value);save();draw()"></label><label>Simulation day<input type="number" min="1" max="30" value="${S.day}" onchange="S.day=Math.min(30,Math.max(1,+this.value));save();draw()"></label></div><p class="mu">Safe allowance = (balance − goal savings + scheduled flows − reserve) ÷ remaining days. Risk: Critical if balance goes below ₹0, High if below the reserve, Moderate if safe allowance is under ₹100. Health score: coverage 25, cash-flow 25, reserve 20, budget 15, savings 15. All money is stored in paise. Data stays in this browser; no bank is connected.</p><div class="row"><button onclick="S.day=Math.min(30,S.day+1);save();draw()">Advance one day</button><button onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme=='light'?'dark':'light'">Toggle theme</button><button onclick="csv()">Export CSV</button><button onclick="if(confirm('Reset everything to the demo?')){S=demo();save();draw()}">Reset to demo</button><button onclick="if(confirm('Clear all data and start blank?')){S={...demo(),demo:false,tx:[],com:[],goals:[],day:1};save();draw()}">Clear data</button></div></div>`}
+const V={ov,tx:txv,bp,sim,gl,bl,in:ins,st};
+function draw(){$('nav').innerHTML='<b>₹10K</b>'+TABS.map(([k,n])=>`<button class="${S.tab==k?'on':''}" onclick="S.tab='${k}';save();draw()">${n}</button>`).join('')+`<button onclick="S.day=Math.min(30,S.day+1);save();draw()" title="Advance simulation day">Day ${S.day}/30 +</button>`;
+const f=document.activeElement&&document.activeElement.id;$('m').innerHTML=V[S.tab]();if(f&&$(f))$(f).focus()}
+draw();
+</script></body></html>

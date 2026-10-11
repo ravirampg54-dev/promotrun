@@ -1,0 +1,182 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* light theme — warm slate with violet accent */
+    --background: 220 33% 97%;
+    --foreground: 224 44% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 44% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 44% 11%;
+    --primary: 258 84% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 24% 93%;
+    --secondary-foreground: 224 40% 16%;
+    --muted: 220 24% 94%;
+    --muted-foreground: 222 14% 40%;
+    --accent: 258 84% 96%;
+    --accent-foreground: 258 70% 40%;
+    --destructive: 358 70% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 20% 88%;
+    --input: 222 20% 86%;
+    --ring: 258 84% 58%;
+    --surface-0: 220 33% 97%;
+    --surface-1: 0 0% 100%;
+    --surface-2: 220 28% 95%;
+    --surface-3: 220 24% 92%;
+    --status-lime: 128 58% 34%;
+    --status-amber: 32 92% 38%;
+    --status-red: 358 70% 48%;
+    --status-sky: 199 89% 38%;
+    --radius: 0.85rem;
+  }
+
+  .dark {
+    /* dark theme — deep navy surface scale, violet accent */
+    --background: 228 47% 6%;
+    --foreground: 214 32% 96%;
+    --card: 228 40% 9%;
+    --card-foreground: 214 32% 96%;
+    --popover: 228 42% 10%;
+    --popover-foreground: 214 32% 96%;
+    --primary: 258 90% 68%;
+    --primary-foreground: 258 60% 12%;
+    --secondary: 228 30% 16%;
+    --secondary-foreground: 214 30% 92%;
+    --muted: 228 28% 15%;
+    --muted-foreground: 218 18% 66%;
+    --accent: 258 40% 20%;
+    --accent-foreground: 258 90% 86%;
+    --destructive: 358 78% 60%;
+    --destructive-foreground: 358 60% 10%;
+    --border: 228 26% 19%;
+    --input: 228 26% 22%;
+    --ring: 258 90% 68%;
+    --surface-0: 228 47% 6%;
+    --surface-1: 228 40% 9%;
+    --surface-2: 228 34% 13%;
+    --surface-3: 228 30% 18%;
+    --status-lime: 96 68% 62%;
+    --status-amber: 38 92% 60%;
+    --status-red: 358 78% 64%;
+    --status-sky: 190 90% 60%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Manrope', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv01';
+    min-height: 100vh;
+    overscroll-behavior-y: none;
+  }
+
+  /* every number in this app lines up in columns */
+  .tnum,
+  input[type='number'],
+  table,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.32);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.28);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.45);
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .card-surface {
+    @apply rounded-xl border bg-card shadow-card;
+  }
+
+  .hairline {
+    @apply border-b border-border/70;
+  }
+
+  .grain {
+    background-image:
+      radial-gradient(hsl(var(--primary) / 0.16) 1px, transparent 1px),
+      radial-gradient(hsl(var(--status-sky) / 0.1) 1px, transparent 1px);
+    background-size: 22px 22px, 34px 34px;
+    background-position: 0 0, 11px 17px;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-surface-3/70;
+  }
+  .skeleton::after {
+    @apply absolute inset-0 animate-shimmer;
+    content: '';
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--foreground) / 0.06),
+      transparent
+    );
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

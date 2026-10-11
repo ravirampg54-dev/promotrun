@@ -13,7 +13,9 @@ leaves it.
 
 ## Setup
 
-Requires **Node 20.19+ or 22.12+** (Vite 5 runs on Node 18+, but LTS is recommended).
+Requires **Node 20.19+ or 22.12+** (required by Vite 7).
+
+Built with React 19, Vite 7, TypeScript 7, Tailwind 3, Zustand 5, and Radix UI.
 
 ```bash
 npm install
@@ -73,7 +75,7 @@ src/
 │   ├── scenarios.ts   pure preview + comparison + goal delay math
 │   ├── derive.ts      one function: state → every number the UI shows
 │   └── __tests__/     86 Vitest specs
-├── store/             Zustand + persist, selectors, demo seed, CSV export
+├── store/             Zustand 5 + persist, selectors, demo seed, CSV export
 ├── schemas/           Zod schemas for every form
 ├── components/
 │   ├── ui/            Button, Card, Dialog, Tabs, Select, Progress, Switch…
@@ -170,7 +172,7 @@ deduplicates on warning id.
 npm test
 ```
 
-86 specs across five files, all against the pure engine:
+112 specs across seven files. Five cover the pure engine:
 
 - **`money.test.ts`** — Indian grouping, paise parsing, decimals, negatives, even splits
 - **`recurrence.test.ts`** — once/weekly/monthly, short-month clamping, cancel vs pause, next occurrence
@@ -178,7 +180,12 @@ npm test
 - **`risk-health.test.ts`** — all four levels, four-part warnings, baselines, missed deadlines, funded goals, over-budget categories, health weights summing to 100
 - **`scenarios.test.ts`** — preview does not mutate state, duplicate entries, apply-once, winner selection and tie-breaks, goal delay from the real contribution rate
 
-No test touches the DOM or a mock — because the engine never needs them.
+The remaining two cover the store and components:
+
+- **`store.test.ts`** — defaults, demo seed, item actions, goal and budget rules, apply-once scenario commits, notification dedupe, selectors, CSV export, persistence migration, reset
+- **`Button.test.ts`** — `asChild` / Radix Slot rendering
+
+The engine tests need no DOM or mocks, because the engine never needs them. The component test uses `renderToStaticMarkup`, so the suite still runs in a plain Node environment with no jsdom.
 
 ---
 
